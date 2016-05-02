@@ -11,15 +11,17 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-class UpdateWindTask extends AsyncTask<Favourite, Void, List<JSONObject>> {
+class UpdateWindTask extends AsyncTask<String, Void, List<JSONObject>> {
         private ProgressDialog pDialog;
         private WindAppDBHelper dbHelper;
+        private List<Favourite> favourites;
 
     FavouritesFragment container;
 
     public UpdateWindTask(FavouritesFragment f) {
-        this.dbHelper = WindAppDBHelper.getInstance(f.getContext());
+        this.dbHelper = WindAppDBHelper.getInstance(f.getActivity().getApplicationContext());
         this.container = f;
+        this.favourites = dbHelper.getAllFavourites();
     }
 
 
@@ -35,14 +37,14 @@ class UpdateWindTask extends AsyncTask<Favourite, Void, List<JSONObject>> {
         }
 
         @Override
-        protected List<JSONObject> doInBackground(Favourite... args) {
+        protected List<JSONObject> doInBackground(String... arg) {
 
             List<JSONObject> jsonObjectsList = new ArrayList<>();
             JSONWind jc = new JSONWind();
             //TODO: Safe store the API Key.
-            for (int i = 0; i < args.length; i++) {
+            for (int i = 0; i < favourites.size(); i++) {
                 String url = String.format("http://api.openweathermap.org/data/2.5/weather?id=%d&appid=71f92de99a61afd3d37577e2895357d4",
-                        args[i].getCity_id());
+                        favourites.get(i).getCity_id());
                 JSONObject jsonFavourite = jc.getJSONFromUrl(url);
                 jsonObjectsList.add(jsonFavourite);
             }
@@ -65,7 +67,7 @@ class UpdateWindTask extends AsyncTask<Favourite, Void, List<JSONObject>> {
 
 
             pDialog.dismiss();
-
-            container.notifyAll();
+            if(args.size()>0)
+                container.getAdapter().changeList(dbHelper.getAllFavourites());
         }
     }

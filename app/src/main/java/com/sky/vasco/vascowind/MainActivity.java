@@ -7,8 +7,10 @@ import android.support.design.widget.TabLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 
 import android.support.v4.app.Fragment;
@@ -19,8 +21,11 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import com.sky.vasco.vascowind.dummy.DummyContent;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity
         implements FavouritesFragment.OnListFragmentInteractionListener, AddTestFragment.OnListFragmentInteractionListener{
@@ -51,6 +56,9 @@ public class MainActivity extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
+        dbHelper = WindAppDBHelper.getInstance(this);
+        List<Favourite> test = dbHelper.getAllFavourites();
+        test.size();
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
 
         // Set up the ViewPager with the sections adapter.
@@ -106,6 +114,24 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
+    protected void onDestroy() {
+        List<Favourite> test = dbHelper.getAllFavourites();
+        test.size();
+        dbHelper.close();
+        test.size();
+        super.onDestroy();
+    }
+
+    @Override
+    protected void onStop() {
+        List<Favourite> test = dbHelper.getAllFavourites();
+        test.size();
+        dbHelper.close();
+        test.size();
+        super.onStop();
+    }
+
+    @Override
     public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
         switch (requestCode) {
             case REQUEST_CODE_ASK_NET_STATE: {
@@ -140,21 +166,33 @@ public class MainActivity extends AppCompatActivity
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (item.getItemId()) {
+            // action with ID action_refresh was selected
+            case R.id.action_refresh:
+                FavouritesFragment fav = mSectionsPagerAdapter.currentFavFragment;
+                Toast.makeText(fav.getContext(), "Refresh selected", Toast.LENGTH_SHORT)
+                        .show();
+                fav.getAdapter().changeList(dbHelper.getAllFavourites());
+                break;
+            // action with ID action_settings was selected
+            case R.id.action_settings:
+                Toast.makeText(this, "Settings selected", Toast.LENGTH_SHORT)
+                        .show();
+                break;
+            default:
+                break;
         }
 
-        return super.onOptionsItemSelected(item);
-    }
+        return true;
+
+}
+
 
     @Override
-    public void onListFragmentInteraction(DummyContent.DummyItem item) {
+    public void onListFragmentInteraction(Favourite item) {
 
     }
-
 
     /**
      * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
@@ -165,6 +203,7 @@ public class MainActivity extends AppCompatActivity
         public SectionsPagerAdapter(FragmentManager fm) {
             super(fm);
         }
+        public FavouritesFragment currentFavFragment;
 
         @Override
         public Fragment getItem(int position) {
@@ -172,10 +211,14 @@ public class MainActivity extends AppCompatActivity
             switch (position) {
                 case 0:
                     FavouritesFragment tab1 = new FavouritesFragment();
-                    return tab1.newInstance(1);
+                    Fragment fav=tab1.newInstance(1);
+                    this.currentFavFragment = (FavouritesFragment) fav;
+                    return fav;
+
                 case 1:
-                    AddFavouritesFragment tab2 = new AddFavouritesFragment();
-                    return tab2.newInstance(2);
+                    AddTestFragment tab2 = new AddTestFragment();
+                    //AddFavouritesFragment tab2 = new AddFavouritesFragment();
+                    return tab2.newInstance(1);
                 default:
                     FavouritesFragment tabDef = new FavouritesFragment();
                     return tabDef.newInstance(1);

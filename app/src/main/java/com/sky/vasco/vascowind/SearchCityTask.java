@@ -2,6 +2,7 @@ package com.sky.vasco.vascowind;
 
 import android.app.ProgressDialog;
 import android.os.AsyncTask;
+import android.view.View;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -14,10 +15,10 @@ class SearchCityTask extends AsyncTask<String, Void, JSONObject> {
         private ProgressDialog pDialog;
         private WindAppDBHelper dbHelper;
 
-    FavouritesFragment container;
+    AddTestFragment container;
 
-    public SearchCityTask(FavouritesFragment f) {
-        this.dbHelper = WindAppDBHelper.getInstance(f.getContext());
+    public SearchCityTask(AddTestFragment f) {
+        this.dbHelper = WindAppDBHelper.getInstance(f.getContext().getApplicationContext());
         this.container = f;
     }
 
@@ -36,16 +37,16 @@ class SearchCityTask extends AsyncTask<String, Void, JSONObject> {
         @Override
         protected JSONObject doInBackground(String... search) {
 
-            JSONObject jsonObject = new JSONObject();
             JSONWind jc = new JSONWind();
             //TODO: Safe store the API Key.
+            String  input = search[0].replace(" ", "");
 
                 String url = String.format("http://api.openweathermap.org/data/2.5/find?q=%s&type=like&appid=71f92de99a61afd3d37577e2895357d4",
-                        search[0]);
-                JSONObject jsonFavourite = jc.getJSONFromUrl(url);
+                        input);
+                JSONObject jsonSearchResult = jc.getJSONFromUrl(url);
 
             // Return the data from specified url
-            return jsonObject;
+            return jsonSearchResult;
         }
 
 
@@ -59,6 +60,6 @@ class SearchCityTask extends AsyncTask<String, Void, JSONObject> {
 
             pDialog.dismiss();
 
-            container.notifyAll();
+            container.getAdapter().changeList(cities);
         }
     }

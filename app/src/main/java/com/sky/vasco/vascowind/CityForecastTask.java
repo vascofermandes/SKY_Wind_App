@@ -16,7 +16,7 @@ class CityForecastTask extends AsyncTask<Favourite, Void, JSONObject> {
     FavouritesFragment container;
 
     public CityForecastTask(FavouritesFragment f) {
-        this.dbHelper = WindAppDBHelper.getInstance(f.getContext());
+        this.dbHelper = WindAppDBHelper.getInstance(f.getContext().getApplicationContext());
         this.container = f;
     }
 

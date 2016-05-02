@@ -105,16 +105,15 @@ public class WindAppDBHelper extends SQLiteOpenHelper {
         public List<Favourite> getAllFavourites() {
             List<Favourite> favourites = new ArrayList<>();
 
-            String POSTS_SELECT_QUERY =
+            String FAV_SELECT_QUERY =
                     String.format("SELECT * FROM %s ",
                             TABLE_FAVOURITES);
 
             SQLiteDatabase db = getReadableDatabase();
-            Cursor cursor = db.rawQuery(POSTS_SELECT_QUERY, null);
+            Cursor cursor = db.rawQuery(FAV_SELECT_QUERY, null);
             try {
                 if (cursor.moveToFirst())
                     do {
-
                         int id = cursor.getInt(cursor.getColumnIndex(KEY_FAVOURITE_CITY_ID));
                         String name = cursor.getString(cursor.getColumnIndex(KEY_FAVOURITE_CITY_NAME));
                         int date = cursor.getInt(cursor.getColumnIndex(KEY_FAVOURITE_LAST_DATE));
@@ -138,6 +137,23 @@ public class WindAppDBHelper extends SQLiteOpenHelper {
             return favourites;
         }
 
+    // check if city is already stored in favourites database
+    public boolean checkIfExists(int city_id) {
+        SQLiteDatabase db = getReadableDatabase();
+        db.beginTransaction();
+
+        String FAV_SELECT_QUERY =
+                String.format("SELECT * FROM favourites WHERE city=%d",
+                        city_id);
+
+        Cursor cursor=db.rawQuery(FAV_SELECT_QUERY, null);
+
+        if(cursor.getCount()>0)
+            return true;
+        else
+            return false;
+    }
+
     // Update the last wind conditions for the favourites
     public int updateFavouriteLastWind(int city_id, Wind wind) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -153,7 +169,7 @@ public class WindAppDBHelper extends SQLiteOpenHelper {
     }
 
     // Delete all posts and users in the database
-    public void deleteCityFavourite(int city_id, Wind wind) {
+    public void deleteCityFavourite(int city_id) {
         SQLiteDatabase db = getWritableDatabase();
         db.beginTransaction();
         try {

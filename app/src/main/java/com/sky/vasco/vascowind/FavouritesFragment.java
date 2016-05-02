@@ -32,6 +32,8 @@ public class FavouritesFragment extends Fragment {
     private int mColumnCount = 1;
     private OnListFragmentInteractionListener mListener;
     private WindAppDBHelper dbHelper;
+    List<Favourite> favourites;
+    FavouriteRecyclerViewAdapter adapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -50,18 +52,24 @@ public class FavouritesFragment extends Fragment {
         return fragment;
     }
 
+    public FavouriteRecyclerViewAdapter getAdapter() {
+        return adapter;
+    }
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        dbHelper = WindAppDBHelper.getInstance(getContext());
-        List<Favourite> favourites = dbHelper.getAllFavourites();
+        dbHelper = WindAppDBHelper.getInstance(getContext().getApplicationContext());
+        favourites = dbHelper.getAllFavourites();
 
 
         NetworkTest network = new NetworkTest(getContext());
+
         if(network.isConnectingToInternet())
         {
-            if(favourites.size()>0);
-            new UpdateWindTask(this).execute((Runnable) favourites);
+            if(favourites.size()>0)
+                new UpdateWindTask(this).execute("");
         }
         else {
             Toast toast = Toast.makeText(this.getContext(), "WITHOUT INTERNET CONNECTION", Toast.LENGTH_SHORT);
@@ -72,6 +80,8 @@ public class FavouritesFragment extends Fragment {
 
         }
     }
+
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -87,7 +97,8 @@ public class FavouritesFragment extends Fragment {
             } else {
                 recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
             }
-            recyclerView.setAdapter(new FavouriteRecyclerViewAdapter(DummyContent.ITEMS, mListener));
+            this.adapter = new FavouriteRecyclerViewAdapter(favourites, mListener);
+            recyclerView.setAdapter(adapter);
         }
         return view;
     }
@@ -123,7 +134,7 @@ public class FavouritesFragment extends Fragment {
 
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(DummyItem item);
+        void onListFragmentInteraction(Favourite item);
     }
 
 }

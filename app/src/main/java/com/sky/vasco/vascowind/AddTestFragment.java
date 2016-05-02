@@ -1,12 +1,21 @@
 package com.sky.vasco.vascowind;
 
+import android.app.SearchManager;
 import android.content.Context;
 import android.os.Bundle;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.ListFragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+//import android.support.v7.widget.SearchView;
+import android.app.SearchManager;
+import android.widget.SearchView;
+import android.widget.SearchView.OnQueryTextListener;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -19,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ *
  * A fragment representing a list of Items.
  * <p/>
  * Activities containing this fragment MUST implement the {@link OnListFragmentInteractionListener}
@@ -32,6 +42,8 @@ public class AddTestFragment extends Fragment {
     private int mColumnCount = 1;
     private OnListFragmentInteractionListener mListener;
     private WindAppDBHelper dbHelper;
+    private List<Favourite> currentList;
+    private AddCityRecyclerViewAdapter adapter;
 
     /**
      * Mandatory empty constructor for the fragment manager to instantiate the
@@ -50,12 +62,20 @@ public class AddTestFragment extends Fragment {
         return fragment;
     }
 
+
+    public AddCityRecyclerViewAdapter getAdapter() {
+        return adapter;
+    }
+
+    public void setAdapter(AddCityRecyclerViewAdapter adapter) {
+        this.adapter = adapter;
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        dbHelper = WindAppDBHelper.getInstance(getContext());
-        List<Favourite> favourites = dbHelper.getAllFavourites();
-
+        dbHelper = WindAppDBHelper.getInstance(getContext().getApplicationContext());
+        this.currentList = new ArrayList<>();
 
         if (getArguments() != null) {
             mColumnCount = getArguments().getInt(ARG_COLUMN_COUNT);
@@ -63,23 +83,57 @@ public class AddTestFragment extends Fragment {
         }
     }
 
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_main, container, false);
+        Context viewContext = view.getContext();
+        final AddTestFragment instanceFragment = this;
+
 
         // Set the adapter
-        if (view instanceof RecyclerView) {
-            Context context = view.getContext();
-            RecyclerView recyclerView = (RecyclerView) view;
+        // if (view instanceof RecyclerView) {
+
+            RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.list);;
             if (mColumnCount <= 1) {
-                recyclerView.setLayoutManager(new LinearLayoutManager(context));
+                recyclerView.setLayoutManager(new LinearLayoutManager(viewContext));
             } else {
-                recyclerView.setLayoutManager(new GridLayoutManager(context, mColumnCount));
+                recyclerView.setLayoutManager(new GridLayoutManager(viewContext, mColumnCount));
             }
-            recyclerView.setAdapter(new AddCityRecyclerViewAdapter(DummyContent.ITEMS, mListener));
-        }
+            this.adapter = new AddCityRecyclerViewAdapter(currentList, mListener);
+            recyclerView.setAdapter(adapter);
+       // }
+
+        //if (view instanceof SearchView){
+            //SearchView sView = (SearchView) view;
+            SearchView sView = (SearchView) view.findViewById(R.id.searchView);
+
+            SearchManager searchManager = (SearchManager) viewContext.getSystemService(Context.SEARCH_SERVICE);
+            sView.setSearchableInfo(searchManager.getSearchableInfo(this.getActivity().getComponentName()));
+            sView.setIconifiedByDefault(false);
+            sView.setSubmitButtonEnabled(true);
+
+            sView.setOnQueryTextListener(new OnQueryTextListener() {
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                new SearchCityTask(instanceFragment).execute(query);
+                return true;
+            }
+
+        });
+
+        //}
+
         return view;
+
     }
 
 
@@ -113,7 +167,7 @@ public class AddTestFragment extends Fragment {
 
     public interface OnListFragmentInteractionListener {
         // TODO: Update argument type and name
-        void onListFragmentInteraction(DummyItem item);
+        void onListFragmentInteraction(Favourite item);
     }
 
 }
